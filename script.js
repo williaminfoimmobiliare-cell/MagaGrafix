@@ -5,6 +5,7 @@
 /* ---- CONFIG ---- */
 const LS_KEY = 'magagrafix_app_v4';
 const LOW_STOCK_THRESHOLD = 4;
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzM7nixkXWHkTd4UIWxMAdFA0UIdCipyEPdj_hsN-fD1wGaysYZQYHf-w1eYvsrtTmc/exec';
 
 /* ---- DATA ---- */
 let store = {
@@ -396,4 +397,5 @@ async function exportPeriodPDF() {
   const img = canvas.toDataURL('image/png', 1.0);
   pdf.addImage(img, 'PNG', 40, 70, 500, 300);
   pdf.save(`magagrafix_periodo_${from}_${to}.pdf`);
+
 }
