@@ -17,8 +17,9 @@ let store = {
 };
 
 /* ---- INIT ---- */
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   loadStore();
+  await loadFromDrive(); // 🔹 carica i dati da Google Drive all’avvio
   renderAll();
   bindEvents();
 });
@@ -36,6 +37,38 @@ function loadStore() {
 }
 function saveStore() {
   localStorage.setItem(LS_KEY, JSON.stringify(store));
+  syncToDrive(); // 🔹 sincronizza ogni volta che salvi
+}  try {
+    const res = await fetch(WEBAPP_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'save',
+        data: store
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const txt = await res.text();
+    console.log('✅ Dati salvati su Drive:', txt);
+  } catch (err) {
+    console.error('❌ Errore nel salvataggio su Drive:', err);
+  }
+}
+
+async function loadFromDrive() {
+  if (!WEBAPP_URL) return;
+  try {
+    const res = await fetch(WEBAPP_URL + '?action=load');
+    const data = await res.json();
+    if (data && data.items) {
+      store = data;
+      saveStore();
+      renderAll();
+      console.log('✅ Dati caricati da Drive');
+    }
+  } catch (err) {
+    console.error('❌ Errore nel caricamento da Drive:', err);
+  }
+}
 }
 
 /* ---- UTILS ---- */
@@ -397,5 +430,4 @@ async function exportPeriodPDF() {
   const img = canvas.toDataURL('image/png', 1.0);
   pdf.addImage(img, 'PNG', 40, 70, 500, 300);
   pdf.save(`magagrafix_periodo_${from}_${to}.pdf`);
-
 }
