@@ -1,0 +1,200 @@
+/* ================================
+   STYLE — Gestionale MagaGrafix
+   ================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Ruslan+Display&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+
+:root {
+  --bg: #0b0c10;
+  --card: #1f2833;
+  --accent: #ff8c1a; /* arancio */
+  --text: #c5c6c7;
+  --white: #fff;
+  --border: #45a29e;
+  --shadow: rgba(0,0,0,0.4);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Bangers', cursive;
+  letter-spacing: 0.3px;
+  margin: 0;
+  padding: 0;
+}
+
+.wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header {
+  text-align: center;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border);
+}
+
+header h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 3em;
+  margin: 0;
+  background: linear-gradient(90deg, var(--accent), #ffb347);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 6px white, 0 0 15px var(--accent);
+  letter-spacing: 1px;
+}
+
+header h1::first-letter {
+  font-size: 1.1em;
+}
+
+/* Neon glow animation */
+@keyframes neonPulse {
+  0%, 100% { text-shadow: 0 0 5px #fff, 0 0 20px var(--accent), 0 0 30px var(--accent); }
+  50% { text-shadow: 0 0 10px #fff, 0 0 25px var(--accent), 0 0 40px var(--accent); }
+}
+
+header h1 {
+  animation: neonPulse 2s infinite alternate;
+}
+
+header .small {
+  font-size: 1.1em;
+  margin-top: 5px;
+  color: var(--white);
+  opacity: 0.85;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 10px var(--shadow);
+  border: 1px solid #1b1b1b;
+}
+
+.card h3 {
+  color: var(--accent);
+  font-family: 'Orbitron', sans-serif;
+  margin-top: 0;
+}
+
+input, select {
+  background: #111;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--white);
+  width: 100%;
+  box-sizing: border-box;
+  font-family: 'Bangers', cursive;
+  letter-spacing: 0.5px;
+}
+
+input:focus, select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+button {
+  background: var(--accent);
+  border: none;
+  border-radius: 8px;
+  color: var(--bg);
+  font-family: 'Orbitron', sans-serif;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 10px var(--accent);
+}
+
+button.ghost {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+
+button.ghost:hover {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Bangers', cursive;
+}
+
+th, td {
+  padding: 8px;
+  text-align: center;
+  border-bottom: 1px solid #333;
+}
+
+th {
+  background: #111;
+  color: var(--accent);
+  font-size: 1.1em;
+}
+
+tr:hover {
+  background: #16202a;
+}
+
+.alertbar {
+  background: #ff3c00cc;
+  padding: 10px;
+  border-radius: 8px;
+  color: white;
+  text-align: center;
+  font-weight: bold;
+  margin: 10px 0;
+}
+
+.hidden { display: none; }
+
+.flexcol { display: flex; flex-direction: column; gap: 10px; }
+.row { display: flex; gap: 10px; }
+.flex-between { display: flex; justify-content: space-between; align-items: center; }
+
+.controls { display: flex; gap: 8px; justify-content: flex-end; }
+
+.chartwrap {
+  background: #0d1117;
+  border-radius: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+}
+
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+footer {
+  margin-top: 30px;
+  font-size: 0.9em;
+  opacity: 0.6;
+  text-align: center;
+}
+
+/* Neon scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0d1117;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--accent);
+  border-radius: 4px;
+}
