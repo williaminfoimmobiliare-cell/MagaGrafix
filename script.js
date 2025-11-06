@@ -39,7 +39,7 @@ function saveStore() {
   localStorage.setItem(LS_KEY, JSON.stringify(store));
   syncToDrive(); // 🔹 sincronizza ogni volta che salvi
 }  try {
-    const res = await fetch(WEBAPP_URL, {
+   const res = await (async () => await fetch(WEBAPP_URL, {...}))();
       method: 'POST',
       body: JSON.stringify({
         action: 'save',
@@ -431,4 +431,5 @@ async function exportPeriodPDF() {
   pdf.addImage(img, 'PNG', 40, 70, 500, 300);
   pdf.save(`magagrafix_periodo_${from}_${to}.pdf`);
 }
+
 
