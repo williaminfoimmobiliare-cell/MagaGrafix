@@ -43,9 +43,9 @@ function saveStore() {
 
 /* ---- SINCRONIZZAZIONE CON GOOGLE DRIVE ---- */
 async function syncToDrive() {
-  if (!WEBAPP_URL) return;
+  if (https://script.google.com/macros/s/AKfycbw7WH1lVsE1ekX2e5AGspamzEmb4NP0RNamaddGRaxtcsA_sSuGIyZMYERnkXtXTtvV/exec) return;
   try {
-    const res = await fetch(WEBAPP_URL, {
+    const res = await fetch(https://script.google.com/macros/s/AKfycbw7WH1lVsE1ekX2e5AGspamzEmb4NP0RNamaddGRaxtcsA_sSuGIyZMYERnkXtXTtvV/exec, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -61,9 +61,9 @@ async function syncToDrive() {
 }
 
 async function loadFromDrive() {
-  if (!WEBAPP_URL) return;
+  if (https://script.google.com/macros/s/AKfycbw7WH1lVsE1ekX2e5AGspamzEmb4NP0RNamaddGRaxtcsA_sSuGIyZMYERnkXtXTtvV/exec) return;
   try {
-    const res = await fetch(WEBAPP_URL + '?action=load');
+    const res = await fetch(https://script.google.com/macros/s/AKfycbw7WH1lVsE1ekX2e5AGspamzEmb4NP0RNamaddGRaxtcsA_sSuGIyZMYERnkXtXTtvV/exec + '?action=load');
     const data = await res.json();
     if (data && data.items) {
       store = data;
@@ -79,9 +79,9 @@ async function loadFromDrive() {
 
 /* ---- SYNC ---- */
 async function syncToDrive() {
-  if (!WEBAPP_URL) return;
+  if (https://script.google.com/macros/s/AKfycbw7WH1lVsE1ekX2e5AGspamzEmb4NP0RNamaddGRaxtcsA_sSuGIyZMYERnkXtXTtvV/exec) return;
   try {
-    const res = await fetch(WEBAPP_URL, {
+    const res = await fetch(https://script.google.com/macros/s/AKfycbw7WH1lVsE1ekX2e5AGspamzEmb4NP0RNamaddGRaxtcsA_sSuGIyZMYERnkXtXTtvV/exec, {
       method: 'POST',
       body: JSON.stringify({
         action: 'save',
@@ -97,9 +97,9 @@ async function syncToDrive() {
 }
 
 async function loadFromDrive() {
-  if (!WEBAPP_URL) return;
+  if (https://script.google.com/macros/s/AKfycbw7WH1lVsE1ekX2e5AGspamzEmb4NP0RNamaddGRaxtcsA_sSuGIyZMYERnkXtXTtvV/exec) return;
   try {
-    const res = await fetch(WEBAPP_URL + '?action=load');
+    const res = await fetch(https://script.google.com/macros/s/AKfycbw7WH1lVsE1ekX2e5AGspamzEmb4NP0RNamaddGRaxtcsA_sSuGIyZMYERnkXtXTtvV/exec + '?action=load');
     const data = await res.json();
     if (data && data.items) {
       store = data;
@@ -471,5 +471,6 @@ async function exportPeriodPDF() {
   pdf.addImage(img, 'PNG', 40, 70, 500, 300);
   pdf.save(`magagrafix_periodo_${from}_${to}.pdf`);
 }
+
 
 
