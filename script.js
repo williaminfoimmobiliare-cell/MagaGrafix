@@ -5,7 +5,7 @@
 /* ---- CONFIG ---- */
 const LS_KEY = 'magagrafix_app_v4';
 const LOW_STOCK_THRESHOLD = 4;
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzEGQOS3vfAYHCEz5TqWKh2gwU3ViO7Lk8ZvXInPSaX5HLfj6Nc93HKmI2joZv84YPP/exec';
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwlWF8c3DZVl5Hq1pSGwLd4FxduUNXrlk7g1C6y989G-B_RG1f5vCo4KDDkkdKsHmQN/exec';
 
 /* ---- DATA ---- */
 let store = {
@@ -471,4 +471,5 @@ async function exportPeriodPDF() {
   pdf.addImage(img, 'PNG', 40, 70, 500, 300);
   pdf.save(`magagrafix_periodo_${from}_${to}.pdf`);
 }
+
 
