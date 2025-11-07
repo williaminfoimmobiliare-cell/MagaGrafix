@@ -6,7 +6,7 @@
 const LS_KEY = 'magagrafix_app_v8';
 const LOW_STOCK_THRESHOLD = 4;
 // ⚠️ INCOLLA QUI L'URL DELLA TUA WEB APP (Apps Script → Deploy → Web app)
-const WEBAPP_URL = 'https://script.google.com/macros/s/PASTE_YOUR_DEPLOY_ID/exec';
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzQtjEOgy1pA7RvRBU4R70bLBz6tOwJ0u74aXoZXwn9Dp0ahZt6Cey8ql9ez5Qp1Hcd/exec';
 // (facoltativo) se in Code.gs usi una chiave ?key=... , mettila qui:
 const WRITE_KEY = ''; // es. 'mia-chiave' oppure '' se non usi la chiave
 
@@ -591,3 +591,4 @@ function importJSON(ev){
   };
   reader.readAsText(file, 'utf-8');
 }
+
