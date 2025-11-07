@@ -3,7 +3,13 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#1E90FF" />
   <title>MagaGrafix — Gestionale Magazzino</title>
+
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json?v=3" />
+  <link rel="icon" href="icons/icon-192.png" sizes="192x192" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
   <!-- Librerie CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -11,21 +17,21 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <!-- Stili -->
-  <link rel="stylesheet" href="style.css?v=2" />
+  <link rel="stylesheet" href="style.css?v=3" />
 </head>
 <body>
   <div class="wrap">
     <header>
       <h1>MagaGrafix</h1>
-      <!-- sottotitolo rimosso su richiesta -->
       <div id="syncStatus" class="sync-badge">Sync: —</div>
     </header>
 
     <!-- NAV / Menu responsive -->
     <nav class="top-actions">
       <button id="menuToggle" class="menu-btn">☰ Menu</button>
-      <div id="menuPanel" class="menu-panel hidden">
+      <div id="menuPanel" class="menu-panel"><!-- niente "hidden" -->
         <button id="exportJsonBtn" title="Esporta dati (JSON)">Esporta JSON</button>
+        <button id="exportCsvBtn" title="Esporta CSV (Excel/Sheets)">Esporta CSV</button>
         <button id="importJsonBtn" title="Importa dati (JSON)">Importa JSON</button>
         <input id="jsonFileInput" type="file" accept=".json" style="display:none" />
 
@@ -50,15 +56,18 @@
         <div class="card">
           <h3>1️⃣ Aggiungi o Modifica Articolo</h3>
           <div class="flexcol">
-            <input id="sku" placeholder="SKU (es. MGX-001)" />
+            <div class="row">
+              <input id="sku" placeholder="SKU (es. MGX-001)" />
+              <button id="scanSkuBtn" class="ghost" title="Scanner barcode">📷 Scanner</button>
+            </div>
             <input id="name" placeholder="Nome articolo" />
             <div class="row">
               <input id="position" placeholder="Posizione (es. Scaffale A1)" />
-              <input id="stockInit" type="number" placeholder="Stock iniziale" min="0" />
+              <input id="stockInit" type="number" placeholder="Stock iniziale" min="0" inputmode="numeric" />
             </div>
             <div class="row">
-              <input id="costPrice" type="number" placeholder="Costo acquisto €/pz" min="0" step="0.01" />
-              <input id="sellPrice" type="number" placeholder="Prezzo vendita €/pz" min="0" step="0.01" />
+              <input id="costPrice" type="number" placeholder="Costo acquisto €/pz" min="0" step="0.01" inputmode="decimal" />
+              <input id="sellPrice" type="number" placeholder="Prezzo vendita €/pz" min="0" step="0.01" inputmode="decimal" />
             </div>
             <div class="controls">
               <button id="addItemBtn">Aggiungi / Aggiorna</button>
@@ -78,9 +87,9 @@
                 <option value="OUT">OUT (vendita)</option>
                 <option value="ROTTURA">ROTTURA (difetto)</option>
               </select>
-              <input id="txQty" type="number" min="1" value="1" />
+              <input id="txQty" type="number" min="1" value="1" inputmode="numeric" />
             </div>
-            <input id="txSellPrice" type="number" placeholder="Prezzo vendita (solo OUT)" step="0.01" />
+            <input id="txSellPrice" type="number" placeholder="Prezzo vendita (solo OUT)" step="0.01" inputmode="decimal" />
             <div class="controls">
               <button id="addTxBtn">Registra</button>
               <button id="clearTxBtn" class="ghost">Pulisci</button>
@@ -94,6 +103,9 @@
             <h3>Inventario</h3>
             <div class="small">Stock / Valore</div>
           </div>
+
+          <input id="inventorySearch" placeholder="🔎 Cerca SKU, nome o posizione" style="margin-bottom:10px;" />
+
           <div class="scroll-area" style="max-height:300px;">
             <table id="inventoryTable">
               <thead>
@@ -180,7 +192,23 @@
     <footer class="small">© 2025 MagaGrafix — Gestione magazzino sincronizzata</footer>
   </div>
 
+  <!-- Modal scanner -->
+  <div id="scannerModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Scanner codice a barre</h3>
+        <button id="scannerClose" class="ghost">✖</button>
+      </div>
+      <video id="scannerVideo" playsinline></video>
+      <div class="modal-actions">
+        <button id="scannerStart">Avvia</button>
+        <button id="scannerStop" class="ghost">Stop</button>
+      </div>
+      <div id="scannerHint" class="small"></div>
+    </div>
+  </div>
+
   <!-- Script applicazione -->
-  <script src="script.js?v=2"></script>
+  <script src="script.js?v=3"></script>
 </body>
 </html>
