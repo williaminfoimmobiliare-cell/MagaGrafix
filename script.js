@@ -6,7 +6,7 @@
 const LS_KEY = 'magagrafix_app_v5';
 const LOW_STOCK_THRESHOLD = 4;
 // INCOLLA QUI IL TUO URL DI APPS SCRIPT (Deploy > Web app)
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzg7idP767tL7_AsJc9l7TGQ6y2pVdxWCgRAb9LI6fsmumVNZtrKhvVE2Xfs0SZ_1E/exec';
+const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbxkecv4EPEFDf0-48OOSOzetXVE6LrQyBk6cAqEALtK3P5vrJ7LJMnFPb-cL4X4c_SF/exec';
 
 /* ---- DATA ---- */
 let store = {
@@ -489,3 +489,4 @@ function importJSON(ev) {
   };
   reader.readAsText(file, 'utf-8');
 }
+
