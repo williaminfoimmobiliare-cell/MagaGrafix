@@ -1,155 +1,182 @@
 <!doctype html>
 <html lang="it">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MagaGrafix — Gestionale Magazzino</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MagaGrafix — Gestionale Magazzino</title>
 
-<!-- Librerie -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <!-- Librerie CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
-<link rel="stylesheet" href="style.css" />
+  <!-- Stili -->
+  <link rel="stylesheet" href="style.css?v=1" />
 </head>
-
 <body>
-<div class="wrap">
-  <header>
-    <h1>MagaGrafix</h1>
-    <div class="small">Gestionale Magazzino · Entrate · Uscite · Rotture · PDF & Drive Sync</div>
-  </header>
+  <div class="wrap">
+    <header>
+      <h1>MagaGrafix</h1>
+      <!-- rimosso il sottotitolo su richiesta -->
+    </header>
 
-  <div class="top-actions" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:20px 0;">
-    <button id="exportJsonBtn" title="Esporta dati (JSON)">Esporta JSON</button>
-    <button id="importJsonBtn" title="Importa dati (JSON)">Importa JSON</button>
-    <input id="jsonFileInput" type="file" accept=".json" style="display:none" />
-    <button id="syncNowBtn" title="Sincronizza ora">Sincronizza ora</button>
-    <label class="switch"><input id="autoSyncToggle" type="checkbox"><span>AutoSync 30s</span></label>
-    <button id="exportPdfBtn" title="Esporta PDF">Esporta PDF</button>
-  </div>
+    <!-- Barra azioni -->
+    <div class="top-actions" style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:20px 0;">
+      <button id="exportJsonBtn" title="Esporta dati (JSON)">Esporta JSON</button>
+      <button id="importJsonBtn" title="Importa dati (JSON)">Importa JSON</button>
+      <input id="jsonFileInput" type="file" accept=".json" style="display:none" />
 
-  <div id="alertLow" class="alertbar hidden"></div>
+      <button id="syncNowBtn" title="Sincronizza ora">Sincronizza ora</button>
+      <label class="switch" title="Sincronizzazione automatica ogni 30s">
+        <input id="autoSyncToggle" type="checkbox">
+        <span>AutoSync 30s</span>
+      </label>
 
-  <div class="grid" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
-    <div>
-      <!-- Form articoli -->
-      <div class="card">
-        <h3>1️⃣ Aggiungi o Modifica Articolo</h3>
-        <div class="flexcol">
-          <input id="sku" placeholder="SKU (es. MGX-001)" />
-          <input id="name" placeholder="Nome articolo" />
-          <div class="row">
-            <input id="position" placeholder="Posizione (es. Scaffale A1)" />
-            <input id="stockInit" type="number" placeholder="Stock iniziale" min="0" />
+      <button id="exportPdfBtn" title="Esporta PDF Inventario">Esporta PDF</button>
+      <button id="themeToggleBtn" title="Cambia tema chiaro/scuro">🌓 Tema</button>
+    </div>
+
+    <!-- Alert scorte basse -->
+    <div id="alertLow" class="alertbar hidden"></div>
+
+    <div class="grid">
+      <!-- Colonna sinistra -->
+      <div>
+        <!-- Form articoli -->
+        <div class="card">
+          <h3>1️⃣ Aggiungi o Modifica Articolo</h3>
+          <div class="flexcol">
+            <input id="sku" placeholder="SKU (es. MGX-001)" />
+            <input id="name" placeholder="Nome articolo" />
+            <div class="row">
+              <input id="position" placeholder="Posizione (es. Scaffale A1)" />
+              <input id="stockInit" type="number" placeholder="Stock iniziale" min="0" />
+            </div>
+            <div class="row">
+              <input id="costPrice" type="number" placeholder="Costo acquisto €/pz" min="0" step="0.01" />
+              <input id="sellPrice" type="number" placeholder="Prezzo vendita €/pz" min="0" step="0.01" />
+            </div>
+            <div class="controls">
+              <button id="addItemBtn">Aggiungi / Aggiorna</button>
+              <button id="clearItemBtn" class="ghost">Pulisci</button>
+            </div>
           </div>
-          <div class="row">
-            <input id="costPrice" type="number" placeholder="Costo acquisto €/pz" min="0" step="0.01" />
-            <input id="sellPrice" type="number" placeholder="Prezzo vendita €/pz" min="0" step="0.01" />
+        </div>
+
+        <!-- Transazioni -->
+        <div class="card">
+          <h3>2️⃣ Registra Transazione</h3>
+          <div class="flexcol">
+            <select id="txSku"><option value="">-- seleziona SKU --</option></select>
+            <div class="row">
+              <select id="txType">
+                <option value="IN">IN (entrata)</option>
+                <option value="OUT">OUT (vendita)</option>
+                <option value="ROTTURA">ROTTURA (difetto)</option>
+              </select>
+              <input id="txQty" type="number" min="1" value="1" />
+            </div>
+            <input id="txSellPrice" type="number" placeholder="Prezzo vendita (solo OUT)" step="0.01" />
+            <div class="controls">
+              <button id="addTxBtn">Registra</button>
+              <button id="clearTxBtn" class="ghost">Pulisci</button>
+            </div>
           </div>
-          <div class="controls">
-            <button id="addItemBtn">Aggiungi / Aggiorna</button>
-            <button id="clearItemBtn" class="ghost">Pulisci</button>
+        </div>
+
+        <!-- Inventario -->
+        <div class="card">
+          <div class="flex-between">
+            <h3>Inventario</h3>
+            <div class="small">Stock / Valore</div>
+          </div>
+          <div style="max-height:300px;overflow:auto;margin-top:8px;">
+            <table id="inventoryTable">
+              <thead>
+                <tr>
+                  <th>SKU</th>
+                  <th>Nome</th>
+                  <th>Posizione</th>
+                  <th>Stock</th>
+                  <th>Costo</th>
+                  <th>Valore</th>
+                  <th>Azioni</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
           </div>
         </div>
       </div>
 
-      <!-- Transazioni -->
-      <div class="card">
-        <h3>2️⃣ Registra Transazione</h3>
-        <div class="flexcol">
-          <select id="txSku"><option value="">-- seleziona SKU --</option></select>
-          <div class="row">
-            <select id="txType">
-              <option value="IN">IN (entrata)</option>
-              <option value="OUT">OUT (vendita)</option>
-              <option value="ROTTURA">ROTTURA (difetto)</option>
-            </select>
-            <input id="txQty" type="number" min="1" value="1" />
+      <!-- Colonna destra -->
+      <div>
+        <!-- Grafico principale -->
+        <div class="card">
+          <div class="flex-between">
+            <h3>Andamento Magazzino</h3>
+            <div class="small">Unità totali nel tempo</div>
           </div>
-          <input id="txSellPrice" type="number" placeholder="Prezzo vendita (solo OUT)" step="0.01" />
-          <div class="controls">
-            <button id="addTxBtn">Registra</button>
-            <button id="clearTxBtn" class="ghost">Pulisci</button>
+          <div class="row" style="margin:10px 0;">
+            <input type="date" id="fromDate" />
+            <input type="date" id="toDate" />
+            <button id="filterChartBtn">Filtra</button>
+            <button id="downloadChartBtn" class="ghost">Scarica periodo</button>
+          </div>
+          <div class="chartwrap">
+            <canvas id="trendChart"></canvas>
           </div>
         </div>
-      </div>
 
-      <!-- Inventario -->
-      <div class="card">
-        <div class="flex-between">
-          <h3>Inventario</h3>
-          <div class="small">Stock / Valore</div>
+        <!-- Grafico a torta -->
+        <div class="card">
+          <div class="flex-between">
+            <h3>Panoramica Entrate / Uscite / Guadagno</h3>
+          </div>
+          <div class="chartwrap">
+            <canvas id="pieChart"></canvas>
+          </div>
         </div>
-        <div style="max-height:300px;overflow:auto;margin-top:8px;">
-          <table id="inventoryTable">
-            <thead>
-              <tr><th>SKU</th><th>Nome</th><th>Posizione</th><th>Stock</th><th>Costo</th><th>Valore</th><th>Azioni</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+
+        <!-- Storico Transazioni -->
+        <div class="card">
+          <h3>Storico Transazioni</h3>
+          <div style="max-height:250px;overflow:auto;margin-top:8px;">
+            <table id="transactionsTable">
+              <thead>
+                <tr>
+                  <th>Data</th>
+                  <th>SKU</th>
+                  <th>Tipo</th>
+                  <th>Q.tà</th>
+                  <th>Prezzo</th>
+                  <th>Confermata</th>
+                  <th>Azioni</th>
+                </tr>
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Logo & Azienda -->
+        <div class="card">
+          <h3>Logo & Azienda</h3>
+          <div class="flexcol">
+            <input id="companyName" placeholder="Nome azienda (es. MagaGrafix di Falzone William)" />
+            <div class="row">
+              <input id="logoFile" type="file" accept="image/*" />
+              <button id="removeLogoBtn" class="ghost">Rimuovi logo</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div>
-      <!-- Grafico principale -->
-      <div class="card">
-        <div class="flex-between">
-          <h3>Andamento Magazzino</h3>
-          <div class="small">Unità totali nel tempo</div>
-        </div>
-        <div class="row" style="margin:10px 0;">
-          <input type="date" id="fromDate" />
-          <input type="date" id="toDate" />
-          <button id="filterChartBtn">Filtra</button>
-          <button id="downloadChartBtn" class="ghost">Scarica periodo</button>
-        </div>
-        <div class="chartwrap">
-          <canvas id="trendChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Grafico a torta -->
-      <div class="card">
-        <div class="flex-between">
-          <h3>Panoramica Entrate / Uscite / Guadagno</h3>
-        </div>
-        <div class="chartwrap">
-          <canvas id="pieChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Transazioni -->
-      <div class="card">
-        <h3>Storico Transazioni</h3>
-        <div style="max-height:250px;overflow:auto;margin-top:8px;">
-          <table id="transactionsTable">
-            <thead>
-              <tr><th>Data</th><th>SKU</th><th>Tipo</th><th>Q.tà</th><th>Prezzo</th><th>Confermata</th><th>Azioni</th></tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-
-      <!-- Logo e azienda -->
-      <div class="card">
-        <h3>Logo & Azienda</h3>
-        <div class="flexcol">
-          <input id="companyName" placeholder="Nome azienda (es. MagaGrafix di Falzone William)" />
-          <div class="row">
-            <input id="logoFile" type="file" accept="image/*" />
-            <button id="removeLogoBtn" class="ghost">Rimuovi logo</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <footer class="small">© 2025 MagaGrafix — Gestione magazzino sincronizzata</footer>
   </div>
 
-  <footer class="small">© 2025 MagaGrafix — Gestione magazzino sincronizzata con Google Drive</footer>
-</div>
-
-<script src="script.js"></script>
+  <!-- Script applicazione -->
+  <script src="script.js?v=1"></script>
 </body>
 </html>
