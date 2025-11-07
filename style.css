@@ -1,5 +1,5 @@
 /* ================================
-   STYLE — MagaGrafix (blu pro, light & dark + mobile menu)
+   STYLE — MagaGrafix (blu pro, light & dark + mobile menu + modal)
    ================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700&family=Inter:wght@400;600&display=swap');
@@ -13,15 +13,15 @@
   --accent: #1E90FF; --accent-light: #3ea8ff; --accent-dark: #0a66cc;
   --border: #334155;
 
-  --success: #10b981; --warning: #facc15; --danger: #ef4444; --info:#3b82f6;
+  --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --info:#3b82f6;
 
   --ring: rgba(30,144,255,.35);
   --shadow: 0 6px 18px rgba(0,0,0,.3);
 
-  --chart-label-color: #ffffff; /* letto dallo script */
+  --chart-label-color: #ffffff;
 }
 
-/* LIGHT THEME */
+/* LIGHT */
 :root.theme-light {
   --bg: #f4f7fb; --bg-soft: #e9eef6;
   --card: #ffffff; --card-2: #f7f9fc;
@@ -38,7 +38,7 @@
   --chart-label-color: #111111;
 }
 
-/* Preferenza di sistema (fallback) */
+/* Preferenza di sistema fallback */
 @media (prefers-color-scheme: light) {
   :root:not(.theme-dark):not(.theme-light) {
     --bg: #f4f7fb; --bg-soft: #e9eef6;
@@ -47,7 +47,8 @@
     --accent: #1E90FF; --accent-light: #3ea8ff; --accent-dark: #0a66cc;
     --border: #d6e0ee;
     --success: #059669; --warning: #d97706; --danger: #dc2626; --info:#2563eb;
-    --ring: rgba(30,144,255,.25); --shadow: 0 6px 16px rgba(15,23,42,.08);
+    --ring: rgba(30,144,255,.25);
+    --shadow: 0 6px 16px rgba(15,23,42,.08);
     --chart-label-color: #111111;
   }
 }
@@ -55,15 +56,8 @@
 /* BASE */
 *,
 *::before,*::after{ box-sizing: border-box; }
-
 html, body { margin: 0; padding: 0; scroll-behavior: smooth; }
-
-body {
-  font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-  color: var(--text); background: var(--bg);
-  -webkit-font-smoothing: antialiased;
-}
-
+body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color: var(--text); background: var(--bg); -webkit-font-smoothing: antialiased; }
 .wrap { max-width: 1200px; margin: 0 auto; padding: 24px; }
 
 /* HEADER */
@@ -88,7 +82,6 @@ header h1{
   padding: 10px 16px; font-weight:600; font-size:1rem; cursor:pointer;
 }
 .menu-panel { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin-top:10px; }
-.menu-panel.hidden{ display:none; }
 
 @media (max-width: 768px){
   .menu-btn{ display:block; }
@@ -97,7 +90,7 @@ header h1{
     border:1px solid var(--border); border-radius:12px; padding:10px;
     box-shadow: 0 8px 20px rgba(0,0,0,.3); margin-top:8px;
   }
-  .menu-panel.open{ display:flex; }
+  .menu-panel.open{ display:flex !important; }
 }
 
 /* GRID & CARDS */
@@ -180,6 +173,21 @@ tbody tr:hover{ background: color-mix(in srgb, var(--accent) 10%, transparent); 
 .chartwrap{ background:#0d1117; border:1px solid var(--border); border-radius:12px; padding:10px; }
 :root.theme-light .chartwrap{ background:#f8fbff; }
 
+/* MODAL (scanner) */
+.modal.hidden{ display:none !important; }
+.modal{
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+}
+.modal-card{
+  width: min(720px, 100%); background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; box-shadow: var(--shadow); padding: 12px;
+}
+.modal-header{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.modal-card video{ width:100%; background:#000; border-radius:8px; }
+.modal-actions{ display:flex; gap:10px; justify-content:flex-end; margin-top:10px; }
+
 /* LAYOUT UTILS */
 .small{ font-size:.9rem; color:var(--muted); }
 .flexcol{ display:flex; flex-direction:column; gap:10px; }
@@ -202,5 +210,5 @@ footer{ margin-top:28px; font-size:.9rem; color:var(--muted); text-align:center;
   header{ border:none; }
   header h1{ -webkit-text-fill-color:initial; color:#000; text-shadow:none; background:none; }
   .card, .chartwrap, table{ border:1px solid #e5e7eb; box-shadow:none; }
-  button, .alertbar, .switch, .top-actions{ display:none !important; }
+  button, .alertbar, .switch, .top-actions, .modal{ display:none !important; }
 }
