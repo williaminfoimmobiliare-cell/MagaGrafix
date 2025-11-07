@@ -9,11 +9,9 @@
   <!-- PWA -->
   <link rel="manifest" href="manifest.json?v=3" />
   <link rel="icon" href="icons/icon-192.png" sizes="192x192" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
 
-  <!-- Librerie CDN -->
+  <!-- Librerie -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <!-- Stili -->
@@ -26,48 +24,41 @@
       <div id="syncStatus" class="sync-badge">Sync: —</div>
     </header>
 
-    <!-- NAV / Menu responsive -->
+    <!-- Menu responsive -->
     <nav class="top-actions">
       <button id="menuToggle" class="menu-btn">☰ Menu</button>
-      <div id="menuPanel" class="menu-panel"><!-- niente "hidden" -->
-        <button id="exportJsonBtn" title="Esporta dati (JSON)">Esporta JSON</button>
-        <button id="exportCsvBtn" title="Esporta CSV (Excel/Sheets)">Esporta CSV</button>
-        <button id="importJsonBtn" title="Importa dati (JSON)">Importa JSON</button>
+      <div id="menuPanel" class="menu-panel">
+        <button id="exportJsonBtn">Esporta JSON</button>
+        <button id="exportCsvBtn">Esporta CSV</button>
+        <button id="importJsonBtn">Importa JSON</button>
         <input id="jsonFileInput" type="file" accept=".json" style="display:none" />
 
-        <button id="syncNowBtn" title="Sincronizza ora">Sincronizza ora</button>
-        <label class="switch" title="AutoSync 30s">
-          <input id="autoSyncToggle" type="checkbox">
-          <span>AutoSync 30s</span>
-        </label>
+        <button id="syncNowBtn">Sincronizza ora</button>
+        <label class="switch"><input id="autoSyncToggle" type="checkbox"><span>AutoSync 30s</span></label>
 
-        <button id="exportPdfBtn" title="Esporta PDF">Esporta PDF</button>
-        <button id="themeToggleBtn" title="Cambia tema chiaro/scuro">🌓 Tema</button>
+        <button id="exportPdfBtn">Esporta PDF</button>
       </div>
     </nav>
 
-    <!-- Alert scorte basse -->
+    <!-- Alert scorte -->
     <div id="alertLow" class="alertbar hidden"></div>
 
     <div class="grid">
       <!-- Colonna sinistra -->
       <div>
-        <!-- Form articoli -->
+        <!-- Articoli -->
         <div class="card">
           <h3>1️⃣ Aggiungi o Modifica Articolo</h3>
           <div class="flexcol">
-            <div class="row">
-              <input id="sku" placeholder="SKU (es. MGX-001)" />
-              <button id="scanSkuBtn" class="ghost" title="Scanner barcode">📷 Scanner</button>
-            </div>
+            <input id="sku" placeholder="SKU (es. MGX-001)" />
             <input id="name" placeholder="Nome articolo" />
             <div class="row">
               <input id="position" placeholder="Posizione (es. Scaffale A1)" />
-              <input id="stockInit" type="number" placeholder="Stock iniziale" min="0" inputmode="numeric" />
+              <input id="stockInit" type="number" min="0" placeholder="Stock iniziale" />
             </div>
             <div class="row">
-              <input id="costPrice" type="number" placeholder="Costo acquisto €/pz" min="0" step="0.01" inputmode="decimal" />
-              <input id="sellPrice" type="number" placeholder="Prezzo vendita €/pz" min="0" step="0.01" inputmode="decimal" />
+              <input id="costPrice" type="number" min="0" step="0.01" placeholder="Costo €/pz" />
+              <input id="sellPrice" type="number" min="0" step="0.01" placeholder="Prezzo €/pz" />
             </div>
             <div class="controls">
               <button id="addItemBtn">Aggiungi / Aggiorna</button>
@@ -87,9 +78,9 @@
                 <option value="OUT">OUT (vendita)</option>
                 <option value="ROTTURA">ROTTURA (difetto)</option>
               </select>
-              <input id="txQty" type="number" min="1" value="1" inputmode="numeric" />
+              <input id="txQty" type="number" min="1" value="1" />
             </div>
-            <input id="txSellPrice" type="number" placeholder="Prezzo vendita (solo OUT)" step="0.01" inputmode="decimal" />
+            <input id="txSellPrice" type="number" step="0.01" placeholder="Prezzo vendita (solo OUT)" />
             <div class="controls">
               <button id="addTxBtn">Registra</button>
               <button id="clearTxBtn" class="ghost">Pulisci</button>
@@ -103,20 +94,12 @@
             <h3>Inventario</h3>
             <div class="small">Stock / Valore</div>
           </div>
-
-          <input id="inventorySearch" placeholder="🔎 Cerca SKU, nome o posizione" style="margin-bottom:10px;" />
-
+          <input id="inventorySearch" placeholder="🔎 Cerca SKU, nome o posizione" style="margin:8px 0 10px" />
           <div class="scroll-area" style="max-height:300px;">
             <table id="inventoryTable">
               <thead>
                 <tr>
-                  <th>SKU</th>
-                  <th>Nome</th>
-                  <th>Posizione</th>
-                  <th>Stock</th>
-                  <th>Costo</th>
-                  <th>Valore</th>
-                  <th>Azioni</th>
+                  <th>SKU</th><th>Nome</th><th>Posizione</th><th>Stock</th><th>Costo</th><th>Valore</th><th>Azioni</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -127,7 +110,7 @@
 
       <!-- Colonna destra -->
       <div>
-        <!-- Grafico principale -->
+        <!-- Grafico -->
         <div class="card">
           <div class="flex-between">
             <h3>Andamento Magazzino</h3>
@@ -139,35 +122,23 @@
             <button id="filterChartBtn">Filtra</button>
             <button id="downloadChartBtn" class="ghost">Scarica periodo</button>
           </div>
-          <div class="chartwrap">
-            <canvas id="trendChart"></canvas>
-          </div>
+          <div class="chartwrap"><canvas id="trendChart"></canvas></div>
         </div>
 
-        <!-- Grafico a torta -->
+        <!-- Torta -->
         <div class="card">
-          <div class="flex-between">
-            <h3>Panoramica Entrate / Uscite / Guadagno</h3>
-          </div>
-          <div class="chartwrap">
-            <canvas id="pieChart"></canvas>
-          </div>
+          <h3>Panoramica Entrate / Uscite / Guadagno</h3>
+          <div class="chartwrap"><canvas id="pieChart"></canvas></div>
         </div>
 
-        <!-- Storico Transazioni -->
+        <!-- Storico -->
         <div class="card">
           <h3>Storico Transazioni</h3>
           <div class="scroll-area" style="max-height:250px;">
             <table id="transactionsTable">
               <thead>
                 <tr>
-                  <th>Data</th>
-                  <th>SKU</th>
-                  <th>Tipo</th>
-                  <th>Q.tà</th>
-                  <th>Prezzo</th>
-                  <th>Confermata</th>
-                  <th>Azioni</th>
+                  <th>Data</th><th>SKU</th><th>Tipo</th><th>Q.tà</th><th>Prezzo</th><th>Confermata</th><th>Azioni</th>
                 </tr>
               </thead>
               <tbody></tbody>
@@ -189,26 +160,10 @@
       </div>
     </div>
 
-    <footer class="small">© 2025 MagaGrafix — Gestione magazzino sincronizzata</footer>
+    <footer class="small">© 2025 MagaGrafix — Gestionale</footer>
   </div>
 
-  <!-- Modal scanner -->
-  <div id="scannerModal" class="modal hidden" aria-hidden="true">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>Scanner codice a barre</h3>
-        <button id="scannerClose" class="ghost">✖</button>
-      </div>
-      <video id="scannerVideo" playsinline></video>
-      <div class="modal-actions">
-        <button id="scannerStart">Avvia</button>
-        <button id="scannerStop" class="ghost">Stop</button>
-      </div>
-      <div id="scannerHint" class="small"></div>
-    </div>
-  </div>
-
-  <!-- Script applicazione -->
+  <!-- Script applicazione (con versione per aggiornamenti) -->
   <script src="script.js?v=3"></script>
 </body>
 </html>
