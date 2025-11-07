@@ -1,14 +1,14 @@
 /* =========================================
-   MagaGrafix — script.js (v8 robust sync)
+   MagaGrafix — script.js (v9: PWA + search + CSV + scanner + robust sync)
    ========================================= */
 
 /* ---- CONFIG ---- */
-const LS_KEY = 'magagrafix_app_v8';
+const LS_KEY = 'magagrafix_app_v9';
 const LOW_STOCK_THRESHOLD = 4;
-// ⚠️ INCOLLA QUI L'URL DELLA TUA WEB APP (Apps Script → Deploy → Web app)
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzQtjEOgy1pA7RvRBU4R70bLBz6tOwJ0u74aXoZXwn9Dp0ahZt6Cey8ql9ez5Qp1Hcd/exec';
-// (facoltativo) se in Code.gs usi una chiave ?key=... , mettila qui:
-const WRITE_KEY = ''; // es. 'mia-chiave' oppure '' se non usi la chiave
+// ⚠️ INCOLLA QUI il tuo URL Apps Script (Deploy → Web app → URL)
+const WEBAPP_URL = 'https://script.google.com/macros/s/PASTE_YOUR_DEPLOY_ID/exec';
+// (facoltativo) Se in Code.gs usi una chiave, mettila qui:
+const WRITE_KEY = ''; // es. 'mia-chiave' oppure '' se non usi chiave
 
 /* ---- THEME ---- */
 const THEME_KEY = 'magagrafix_theme';
@@ -40,6 +40,12 @@ let store = {
 
 /* ---- INIT ---- */
 window.addEventListener('load', async () => {
+  // PWA
+  if ('serviceWorker' in navigator) {
+    try { await navigator.serviceWorker.register('./service-worker.js?v=3'); }
+    catch(e){ console.warn('SW non registrato:', e); }
+  }
+
   initTheme();
   loadStore();
 
@@ -87,7 +93,7 @@ function scheduleSync(){
   syncTimer = setTimeout(syncToDrive, 700);
 }
 
-// POST “semplice” (no CORS preflight) + retry leggero
+// POST form-encoded (niente preflight) + retry
 async function syncToDrive(){
   if (!WEBAPP_URL || syncing) return;
   try{
@@ -100,9 +106,8 @@ async function syncToDrive(){
     if (WRITE_KEY) body.set('key', WRITE_KEY);
 
     let res = await fetch(WEBAPP_URL, { method:'POST', body });
-    if (!res.ok) {
-      // piccolo retry una volta
-      await new Promise(r=>setTimeout(r, 600));
+    if (!res.ok){
+      await new Promise(r=>setTimeout(r, 700));
       res = await fetch(WEBAPP_URL, { method:'POST', body });
     }
     const txt = await res.text();
@@ -117,7 +122,7 @@ async function syncToDrive(){
   }
 }
 
-// GET + merge (non sovrascrive in blocco) + key opzionale
+// GET + merge
 async function loadFromDrive(){
   if (!WEBAPP_URL || syncing) return;
   try{
@@ -242,9 +247,11 @@ function bindEvents(){
 
   // Export/Import
   const exportBtn = document.getElementById('exportJsonBtn');
+  const exportCsvBtn = document.getElementById('exportCsvBtn');
   const importBtn = document.getElementById('importJsonBtn');
   const fileInput = document.getElementById('jsonFileInput');
   if (exportBtn) exportBtn.onclick = exportJSON;
+  if (exportCsvBtn) exportCsvBtn.onclick = exportCSV;
   if (importBtn) importBtn.onclick = ()=> fileInput.click();
   if (fileInput) fileInput.onchange = importJSON;
 
@@ -271,7 +278,7 @@ function bindEvents(){
     themeBtn.onclick = ()=>{
       const cur = localStorage.getItem(THEME_KEY) || 'dark';
       applyTheme(cur === 'dark' ? 'light' : 'dark');
-      refreshCharts(); // ricalibra colori etichette
+      refreshCharts(); // ricalibra colori delle etichette
     };
   }
 
@@ -279,13 +286,31 @@ function bindEvents(){
   const menuBtn = document.getElementById('menuToggle');
   const menuPanel = document.getElementById('menuPanel');
   if (menuBtn && menuPanel){
-    menuBtn.onclick = ()=> menuPanel.classList.toggle('open');
-    document.addEventListener('click', e=>{
-      if (!menuPanel.contains(e.target) && e.target !== menuBtn){
-        menuPanel.classList.remove('open');
-      }
+    menuBtn.onclick = (e)=>{ e.stopPropagation(); menuPanel.classList.toggle('open'); };
+    document.addEventListener('click', (e)=>{
+      if (!menuPanel.contains(e.target) && e.target !== menuBtn){ menuPanel.classList.remove('open'); }
+    }, { passive: true });
+    menuPanel.addEventListener('click', (e)=>{
+      const tag = e.target.tagName;
+      if (tag==='BUTTON' || tag==='LABEL' || tag==='INPUT') menuPanel.classList.remove('open');
     });
   }
+
+  // Ricerca inventario
+  const invSearch = document.getElementById('inventorySearch');
+  if (invSearch) invSearch.addEventListener('input', renderInventory);
+
+  // Scanner barcode
+  const scanBtn = document.getElementById('scanSkuBtn');
+  if (scanBtn) scanBtn.onclick = openScannerModal;
+
+  // Modal scanner controls
+  const closeBtn = document.getElementById('scannerClose');
+  const startBtn = document.getElementById('scannerStart');
+  const stopBtn = document.getElementById('scannerStop');
+  if (closeBtn) closeBtn.onclick = closeScannerModal;
+  if (startBtn) startBtn.onclick = startScanner;
+  if (stopBtn) stopBtn.onclick = stopScanner;
 }
 
 /* ---- ITEM MANAGEMENT ---- */
@@ -396,25 +421,28 @@ function populateSkuSelect(){
 }
 
 function renderInventory(){
+  const q = (document.getElementById('inventorySearch')?.value || '').toLowerCase();
   const tbody = document.querySelector('#inventoryTable tbody');
   tbody.innerHTML = '';
-  store.items.forEach(i=>{
-    const stock = calcStock(i.sku);
-    const val = stock * i.costPrice;
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${i.sku}</td>
-      <td>${i.name}</td>
-      <td>${i.position}</td>
-      <td>${stock}</td>
-      <td>${fmt(i.costPrice)}</td>
-      <td>${fmt(val)}</td>
-      <td>
-        <button onclick="editItem('${i.sku}')">✏️</button>
-        <button onclick="deleteItem('${i.sku}')" class="ghost">🗑️</button>
-      </td>`;
-    tbody.appendChild(tr);
-  });
+  store.items
+    .filter(i => !q || `${i.sku} ${i.name} ${i.position}`.toLowerCase().includes(q))
+    .forEach(i=>{
+      const stock = calcStock(i.sku);
+      const val = stock * i.costPrice;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${i.sku}</td>
+        <td>${i.name}</td>
+        <td>${i.position}</td>
+        <td>${stock}</td>
+        <td>${fmt(i.costPrice)}</td>
+        <td>${fmt(val)}</td>
+        <td>
+          <button onclick="editItem('${i.sku}')">✏️</button>
+          <button onclick="deleteItem('${i.sku}')" class="ghost">🗑️</button>
+        </td>`;
+      tbody.appendChild(tr);
+    });
   lowStockAlert();
   decorateTablesForMobile();
 }
@@ -461,9 +489,7 @@ function lowStockAlert(){
 /* ---- CHARTS ---- */
 let trendChart, pieChart;
 
-function cssVar(name){
-  return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '';
-}
+function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || ''; }
 
 function refreshCharts(){
   const from = document.getElementById('fromDate').value
@@ -558,12 +584,25 @@ async function exportPeriodPDF(){
   pdf.save(`magagrafix_periodo_${from}_${to}.pdf`);
 }
 
-/* ---- JSON I/O ---- */
+/* ---- JSON / CSV ---- */
 function exportJSON(){
   const blob = new Blob([JSON.stringify(store, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'magagrafix_store_backup.json';
+  a.click(); URL.revokeObjectURL(a.href);
+}
+function exportCSV(){
+  const rows = [['SKU','Nome','Posizione','Stock','Costo','Valore']];
+  store.items.forEach(i=>{
+    const stock = calcStock(i.sku);
+    rows.push([i.sku, i.name, i.position, stock, i.costPrice, (stock*i.costPrice)]);
+  });
+  const csv = rows.map(r => r.map(x => `"${String(x).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'magagrafix_inventario.csv';
   a.click(); URL.revokeObjectURL(a.href);
 }
 function importJSON(ev){
@@ -592,3 +631,64 @@ function importJSON(ev){
   reader.readAsText(file, 'utf-8');
 }
 
+/* ---- SCANNER BARCODE ---- */
+let stream = null;
+let detector = null;
+const modal = document.getElementById('scannerModal');
+const video = document.getElementById('scannerVideo');
+const hint = document.getElementById('scannerHint');
+
+function openScannerModal(){
+  if (!modal) return;
+  modal.classList.remove('hidden');
+  modal.setAttribute('aria-hidden','false');
+  hint.textContent = 'Suggerimento: punta al codice a barre (EAN/QR).';
+}
+async function startScanner(){
+  if (!modal) openScannerModal();
+  try{
+    // Preferisci camera posteriore
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+    video.srcObject = stream;
+    await video.play();
+
+    if ('BarcodeDetector' in window){
+      const formats = ['qr_code','ean_13','ean_8','code_128','code_39','upc_a','upc_e'];
+      detector = new window.BarcodeDetector({ formats });
+      scanLoop();
+      hint.textContent = 'Scanner attivo…';
+    } else {
+      hint.textContent = 'BarcodeDetector non supportato: usa la camera per leggere manualmente il codice.';
+    }
+  }catch(err){
+    hint.textContent = 'Permesso camera negato o indisponibile.';
+    console.error(err);
+  }
+}
+async function scanLoop(){
+  if (!detector || !video || video.readyState < 2) { requestAnimationFrame(scanLoop); return; }
+  try{
+    const barcodes = await detector.detect(video);
+    if (barcodes && barcodes.length){
+      const value = barcodes[0].rawValue || '';
+      if (value){
+        document.getElementById('sku').value = value;
+        hint.textContent = `Rilevato: ${value}`;
+        closeScannerModal();
+      }
+    }
+  }catch(e){ /* ignore */ }
+  if (modal && !modal.classList.contains('hidden')) requestAnimationFrame(scanLoop);
+}
+function stopScanner(){
+  if (stream){
+    stream.getTracks().forEach(t => t.stop());
+    stream = null;
+  }
+}
+function closeScannerModal(){
+  stopScanner();
+  if (!modal) return;
+  modal.classList.add('hidden');
+  modal.setAttribute('aria-hidden','true');
+}
