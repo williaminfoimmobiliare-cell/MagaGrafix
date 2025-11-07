@@ -1,12 +1,35 @@
-/* ===============================
-   SCRIPT — MagaGrafix Gestionale (v6, merge + CORS fix)
-   =============================== */
+/* =========================================
+   MagaGrafix — script.js (v7 responsive)
+   ========================================= */
 
 /* ---- CONFIG ---- */
-const LS_KEY = 'magagrafix_app_v6';
+const LS_KEY = 'magagrafix_app_v7';
 const LOW_STOCK_THRESHOLD = 4;
 // INCOLLA QUI L'URL DELLA TUA WEB APP (Apps Script → Deploy → Web app)
-const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzQtjEOgy1pA7RvRBU4R70bLBz6tOwJ0u74aXoZXwn9Dp0ahZt6Cey8ql9ez5Qp1Hcd/exec';
+const WEBAPP_URL = 'https://script.google.com/macros/s/PASTE_YOUR_DEPLOY_ID/exec';
+
+/* ---- TEMA (light/dark) ---- */
+const THEME_KEY = 'magagrafix_theme'; // 'light' | 'dark'
+function applyTheme(theme) {
+  const root = document.documentElement;
+  if (theme === 'light') {
+    root.classList.add('theme-light');
+    root.classList.remove('theme-dark');
+  } else {
+    root.classList.add('theme-dark');
+    root.classList.remove('theme-light');
+  }
+  localStorage.setItem(THEME_KEY, theme);
+}
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY);
+  if (saved === 'light' || saved === 'dark') {
+    applyTheme(saved);
+  } else {
+    const prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+    applyTheme(prefersLight ? 'light' : 'dark');
+  }
+}
 
 /* ---- DATA ---- */
 let store = {
@@ -21,6 +44,7 @@ let store = {
 
 /* ---- INIT ---- */
 window.addEventListener('load', async () => {
+  initTheme();    // tema prima di mostrare l'interfaccia
   loadStore();
 
   // bind companyName ↔ store
@@ -33,8 +57,7 @@ window.addEventListener('load', async () => {
     });
   }
 
-  // primo pull dal “centrale” + render
-  await loadFromDrive();
+  await loadFromDrive(); // primo pull dal “centrale”
   renderAll();
   bindEvents();
 });
@@ -45,7 +68,6 @@ function loadStore() {
   if (!raw) return;
   try { store = JSON.parse(raw); } catch(e){ console.error(e); }
 }
-
 function saveStore() {
   store.version = (store.version || 0) + 1;
   store.lastWriteTs = Date.now();
@@ -159,6 +181,18 @@ const uid = () => 'TX' + Date.now() + Math.floor(Math.random() * 999);
 const fmt = n => Number(n || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const findItem = sku => store.items.find(i => i.sku === sku);
 
+/* Tabelle → aggiunge data-label ai TD per la modalità “card” su mobile */
+function decorateTablesForMobile() {
+  ['inventoryTable','transactionsTable'].forEach(id => {
+    const table = document.getElementById(id);
+    if (!table) return;
+    const heads = [...table.querySelectorAll('thead th')].map(th => th.textContent.trim());
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      [...tr.children].forEach((td, i) => td.setAttribute('data-label', heads[i] || ''));
+    });
+  });
+}
+
 /* ---- EVENTS ---- */
 function bindEvents() {
   // Item
@@ -211,6 +245,15 @@ function bindEvents() {
       }
     });
   }
+
+  // Tema (toggle 🌓) — il bottone è opzionale: se non c'è, salta
+  const themeBtn = document.getElementById('themeToggleBtn');
+  if (themeBtn) {
+    themeBtn.onclick = () => {
+      const current = localStorage.getItem(THEME_KEY) || 'dark';
+      applyTheme(current === 'dark' ? 'light' : 'dark');
+    };
+  }
 }
 
 /* ---- ITEM MANAGEMENT ---- */
@@ -231,11 +274,11 @@ function addOrUpdateItem() {
     item.stockInit = stockInit;
     item.costPrice = costPrice;
     item.sellPrice = sellPrice;
-    item.updatedAt = now;               // importantissimo per il merge
+    item.updatedAt = now;               // importante per il merge
   } else {
     store.items.push({
       sku, name, position, stockInit, costPrice, sellPrice,
-      updatedAt: now                     // importantissimo per il merge
+      updatedAt: now                     // importante per il merge
     });
   }
 
@@ -318,6 +361,7 @@ function renderAll() {
   renderTransactions();
   populateSkuSelect();
   refreshCharts();
+  decorateTablesForMobile();
 }
 
 function populateSkuSelect() {
@@ -351,6 +395,7 @@ function renderInventory() {
     tbody.appendChild(tr);
   });
   lowStockAlert();
+  decorateTablesForMobile();
 }
 
 function calcStock(sku) {
@@ -379,6 +424,7 @@ function renderTransactions() {
       <td><button onclick="confirmTx('${t.id}')">Conferma</button></td>`;
     tbody.appendChild(tr);
   });
+  decorateTablesForMobile();
 }
 
 /* ---- ALERT ---- */
@@ -434,7 +480,7 @@ function refreshCharts() {
   if (pieChart) pieChart.destroy();
   pieChart = new Chart(document.getElementById('pieChart'), {
     type: 'pie',
-    data: { labels: ['Entrate (costi)', 'Uscite (vendite)', 'Guadagno netto'], datasets: [{ data: [inVal, outVal, profit], backgroundColor: ['#ff8c1a','#45a29e','#66fcf1'] }] },
+    data: { labels: ['Entrate (costi)', 'Uscite (vendite)', 'Guadagno netto'], datasets: [{ data: [inVal, outVal, profit], backgroundColor: ['#1E90FF','#3b82f6','#10b981'] }] },
     options: { plugins:{ legend:{ labels:{ color:'#fff', font:{ size:14 } } } } }
   });
 }
