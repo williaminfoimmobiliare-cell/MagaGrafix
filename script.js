@@ -1,11 +1,11 @@
 /* ===============================
-   SCRIPT — MagaGrafix Gestionale (2025 sync)
+   SCRIPT — MagaGrafix Gestionale (v5, CORS fix)
    =============================== */
 
 /* ---- CONFIG ---- */
 const LS_KEY = 'magagrafix_app_v5';
 const LOW_STOCK_THRESHOLD = 4;
-// Sostituisci qui con l'URL del tuo deployment Apps Script (Deploy > Web app)
+// INCOLLA QUI IL TUO URL DI APPS SCRIPT (Deploy > Web app)
 const WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbzg7idP767tL7_AsJc9l7TGQ6y2pVdxWCgRAb9LI6fsmumVNZtrKhvVE2Xfs0SZ_1E/exec';
 
 /* ---- DATA ---- */
@@ -20,7 +20,8 @@ let store = {
 /* ---- INIT ---- */
 window.addEventListener('load', async () => {
   loadStore();
-  // Autopopola companyName input e bind live
+
+  // bind companyName al volo
   const companyInput = document.getElementById('companyName');
   if (companyInput) {
     companyInput.value = store.companyName || '';
@@ -30,7 +31,8 @@ window.addEventListener('load', async () => {
     });
   }
 
-  await loadFromDrive();   // prova a caricare la versione “centrale”
+  // prova a caricare lo stato centrale da Drive
+  await loadFromDrive();
   renderAll();
   bindEvents();
 });
@@ -44,7 +46,7 @@ function loadStore() {
 }
 function saveStore() {
   localStorage.setItem(LS_KEY, JSON.stringify(store));
-  scheduleSync(); // evita chiamate POST troppo ravvicinate
+  scheduleSync(); // debounce per non tempestare il server
 }
 
 /* ---- DRIVE SYNC ---- */
@@ -53,17 +55,22 @@ let autoSyncInterval = null;
 
 function scheduleSync() {
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(syncToDrive, 800); // debounce
+  syncTimer = setTimeout(syncToDrive, 800);
 }
 
+// ✅ POST “semplice” (no preflight CORS)
 async function syncToDrive() {
   if (!WEBAPP_URL) return;
   try {
+    const body = new URLSearchParams();
+    body.set('action', 'save');
+    body.set('data', JSON.stringify(store)); // JSON come stringa
+
     const res = await fetch(WEBAPP_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'save', data: store })
+      body // niente headers ⇒ niente preflight
     });
+
     const txt = await res.text();
     console.log('✅ Dati salvati su Drive:', txt);
   } catch (err) {
@@ -79,7 +86,6 @@ async function loadFromDrive() {
     if (data && data.items) {
       store = data;
       localStorage.setItem(LS_KEY, JSON.stringify(store));
-      // aggiorna il campo companyName sul form se presente
       const companyInput = document.getElementById('companyName');
       if (companyInput) companyInput.value = store.companyName || '';
       console.log('✅ Dati caricati da Drive');
@@ -93,7 +99,7 @@ async function loadFromDrive() {
 
 /* ---- UTILS ---- */
 const uid = () => 'TX' + Date.now() + Math.floor(Math.random() * 999);
-const fmt = n => Number(n || 0).toLocaleString('it-IT',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmt = n => Number(n || 0).toLocaleString('it-IT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 const findItem = sku => store.items.find(i => i.sku === sku);
 
 /* ---- EVENTS ---- */
@@ -117,7 +123,11 @@ function bindEvents() {
 
   // Sync manuale
   const syncNowBtn = document.getElementById('syncNowBtn');
-  if (syncNowBtn) syncNowBtn.onclick = async () => { await syncToDrive(); await loadFromDrive(); renderAll(); };
+  if (syncNowBtn) syncNowBtn.onclick = async () => {
+    await syncToDrive();
+    await loadFromDrive();
+    renderAll();
+  };
 
   // Export / Import JSON
   const exportBtn = document.getElementById('exportJsonBtn');
@@ -158,28 +168,39 @@ function addOrUpdateItem() {
 
   let item = findItem(sku);
   if (item) {
-    item.name = name; item.position = position;
-    item.stockInit = stockInit; item.costPrice = costPrice; item.sellPrice = sellPrice;
+    item.name = name;
+    item.position = position;
+    item.stockInit = stockInit;
+    item.costPrice = costPrice;
+    item.sellPrice = sellPrice;
   } else {
     store.items.push({ sku, name, position, stockInit, costPrice, sellPrice });
   }
+
   saveStore();
-  renderInventory(); populateSkuSelect(); clearItemForm();
+  renderInventory();
+  populateSkuSelect();
+  clearItemForm();
 }
 
 function clearItemForm() {
-  ['sku','name','position','stockInit','costPrice','sellPrice'].forEach(id => document.getElementById(id).value = '');
+  ['sku', 'name', 'position', 'stockInit', 'costPrice', 'sellPrice'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
 }
 
 function deleteItem(sku) {
   if (!confirm('Eliminare definitivamente questo articolo?')) return;
   store.items = store.items.filter(i => i.sku !== sku);
   store.transactions = store.transactions.filter(t => t.sku !== sku);
-  saveStore(); renderAll();
+  saveStore();
+  renderAll();
 }
 
 function editItem(sku) {
-  const it = findItem(sku); if (!it) return;
+  const it = findItem(sku);
+  if (!it) return;
   document.getElementById('sku').value = it.sku;
   document.getElementById('name').value = it.name;
   document.getElementById('position').value = it.position;
@@ -198,12 +219,18 @@ function addTransaction() {
   if (!sku || qty <= 0) { alert('Compila tutti i campi.'); return; }
 
   store.transactions.push({
-    id: uid(), ts: Date.now(), sku, type, qty, price,
+    id: uid(),
+    ts: Date.now(),
+    sku,
+    type,
+    qty,
+    price,
     confirmed: type !== 'OUT'
   });
 
   saveStore();
-  renderAll(); clearTxForm();
+  renderAll();
+  clearTxForm();
 }
 
 function clearTxForm() {
@@ -220,7 +247,8 @@ function confirmTx(id) {
     if (newP !== null) t.price = Number(newP);
   }
   t.confirmed = true;
-  saveStore(); renderTransactions();
+  saveStore();
+  renderTransactions();
 }
 
 /* ---- RENDER ---- */
@@ -236,7 +264,8 @@ function populateSkuSelect() {
   sel.innerHTML = '<option value="">-- seleziona SKU --</option>';
   store.items.forEach(i => {
     const o = document.createElement('option');
-    o.value = i.sku; o.textContent = `${i.sku} — ${i.name}`;
+    o.value = i.sku;
+    o.textContent = `${i.sku} — ${i.name}`;
     sel.appendChild(o);
   });
 }
@@ -258,14 +287,16 @@ function renderInventory() {
       <td>
         <button onclick="editItem('${i.sku}')">✏️</button>
         <button onclick="deleteItem('${i.sku}')" class="ghost">🗑️</button>
-      </td>`;
+      </td>
+    `;
     tbody.appendChild(tr);
   });
   lowStockAlert();
 }
 
 function calcStock(sku) {
-  const item = findItem(sku); if (!item) return 0;
+  const item = findItem(sku);
+  if (!item) return 0;
   let stock = item.stockInit || 0;
   store.transactions.filter(t => t.sku === sku).forEach(t => {
     if (t.type === 'IN') stock += t.qty;
@@ -287,7 +318,8 @@ function renderTransactions() {
       <td>${t.qty}</td>
       <td>${fmt(t.price)}</td>
       <td>${t.confirmed ? '✅' : '❌'}</td>
-      <td><button onclick="confirmTx('${t.id}')">Conferma</button></td>`;
+      <td><button onclick="confirmTx('${t.id}')">Conferma</button></td>
+    `;
     tbody.appendChild(tr);
   });
 }
@@ -307,11 +339,13 @@ let trendChart, pieChart;
 
 function refreshCharts() {
   const from = document.getElementById('fromDate').value
-    ? new Date(document.getElementById('fromDate').value).getTime() : 0;
+    ? new Date(document.getElementById('fromDate').value).getTime()
+    : 0;
   const to = document.getElementById('toDate').value
-    ? new Date(document.getElementById('toDate').value).getTime() : Date.now();
+    ? new Date(document.getElementById('toDate').value).getTime()
+    : Date.now();
 
-  // serie giornaliera IN/OUT/ROTTURA (saldo)
+  // andamento giornaliero (saldo)
   const daily = {};
   store.transactions.forEach(t => {
     if (t.ts >= from && t.ts <= to) {
@@ -321,17 +355,31 @@ function refreshCharts() {
       if (t.type === 'OUT' || t.type === 'ROTTURA') daily[day] -= t.qty;
     }
   });
+
   const labels = Object.keys(daily).sort();
   const data = labels.map(l => daily[l]);
 
   if (trendChart) trendChart.destroy();
   trendChart = new Chart(document.getElementById('trendChart'), {
     type: 'line',
-    data: { labels, datasets: [{ label: 'Stock giornaliero', data, borderColor: '#ff8c1a', backgroundColor: 'rgba(255,140,26,0.25)', tension: 0.3, fill: true }] },
-    options: { plugins:{ legend:{ labels:{ color:'#fff' } } }, scales:{ x:{ ticks:{ color:'#fff' } }, y:{ ticks:{ color:'#fff' } } } }
+    data: {
+      labels,
+      datasets: [{
+        label: 'Stock giornaliero',
+        data,
+        borderColor: '#ff8c1a',
+        backgroundColor: 'rgba(255,140,26,0.25)',
+        tension: 0.3,
+        fill: true
+      }]
+    },
+    options: {
+      plugins: { legend: { labels: { color: '#fff' } } },
+      scales: { x: { ticks: { color: '#fff' } }, y: { ticks: { color: '#fff' } } }
+    }
   });
 
-  // torta costi/vendite/profitto sul periodo
+  // torta costi/vendite/profitto
   let inVal = 0, outVal = 0;
   store.transactions.forEach(t => {
     if (t.ts >= from && t.ts <= to) {
@@ -345,14 +393,18 @@ function refreshCharts() {
   if (pieChart) pieChart.destroy();
   pieChart = new Chart(document.getElementById('pieChart'), {
     type: 'pie',
-    data: { labels: ['Entrate (costi)', 'Uscite (vendite)', 'Guadagno netto'], datasets: [{ data: [inVal, outVal, profit], backgroundColor: ['#ff8c1a','#45a29e','#66fcf1'] }] },
-    options: { plugins:{ legend:{ labels:{ color:'#fff', font:{ size:14 } } } } }
+    data: {
+      labels: ['Entrate (costi)', 'Uscite (vendite)', 'Guadagno netto'],
+      datasets: [{ data: [inVal, outVal, profit], backgroundColor: ['#ff8c1a', '#45a29e', '#66fcf1'] }]
+    },
+    options: { plugins: { legend: { labels: { color: '#fff', font: { size: 14 } } } } }
   });
 }
 
 /* ---- LOGO ---- */
 function loadLogo(e) {
-  const file = e.target.files[0]; if (!file) return;
+  const file = e.target.files[0];
+  if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => { store.logoDataUrl = ev.target.result; saveStore(); };
   reader.readAsDataURL(file);
@@ -366,7 +418,8 @@ async function exportFullPDF() {
   const logo = store.logoDataUrl;
   const name = store.companyName || 'MagaGrafix';
 
-  pdf.setFont('helvetica','bold'); pdf.setFontSize(20);
+  pdf.setFont('helvetica', 'bold');
+  pdf.setFontSize(20);
   pdf.text(name, 40, 50);
   if (logo) pdf.addImage(logo, 'PNG', 450, 20, 100, 60);
 
@@ -375,9 +428,14 @@ async function exportFullPDF() {
   store.items.forEach(i => {
     const s = calcStock(i.sku);
     pdf.setFontSize(10);
-    pdf.text(`${i.sku} — ${i.name} (${i.position}) | Stock: ${s} | Costo: €${fmt(i.costPrice)} | Valore: €${fmt(s * i.costPrice)}`, 40, y);
-    y += 16; if (y > 750) { pdf.addPage(); y = 40; }
+    pdf.text(
+      `${i.sku} — ${i.name} (${i.position}) | Stock: ${s} | Costo: €${fmt(i.costPrice)} | Valore: €${fmt(s * i.costPrice)}`,
+      40, y
+    );
+    y += 16;
+    if (y > 750) { pdf.addPage(); y = 40; }
   });
+
   pdf.save('magagrafix_inventario.pdf');
 }
 
@@ -386,7 +444,8 @@ async function exportPeriodPDF() {
   const pdf = new jsPDF('p', 'pt', 'a4');
   const from = document.getElementById('fromDate').value || 'inizio';
   const to = document.getElementById('toDate').value || 'oggi';
-  pdf.setFont('helvetica','bold'); pdf.text(`Periodo: ${from} - ${to}`, 40, 50);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(`Periodo: ${from} - ${to}`, 40, 50);
   const canvas = document.getElementById('trendChart');
   const img = canvas.toDataURL('image/png', 1.0);
   pdf.addImage(img, 'PNG', 40, 70, 500, 300);
@@ -399,23 +458,32 @@ function exportJSON() {
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'magagrafix_store_backup.json';
-  a.click(); URL.revokeObjectURL(a.href);
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 function importJSON(ev) {
-  const file = ev.target.files[0]; if (!file) return;
+  const file = ev.target.files[0];
+  if (!file) return;
   const reader = new FileReader();
   reader.onload = e => {
     try {
       const obj = JSON.parse(e.target.result);
       if (obj && typeof obj === 'object') {
-        store = Object.assign({ items:[], transactions:[], snapshots:[], logoDataUrl:'', companyName:'' }, obj);
-        saveStore(); renderAll();
+        store = Object.assign(
+          { items: [], transactions: [], snapshots: [], logoDataUrl: '', companyName: '' },
+          obj
+        );
+        saveStore();
+        renderAll();
         // dopo import, scrivo subito su Drive
         syncToDrive();
-      } else alert('JSON non valido.');
+      } else {
+        alert('JSON non valido.');
+      }
     } catch (err) {
-      alert('Errore nel parsing del JSON.'); console.error(err);
+      alert('Errore nel parsing del JSON.');
+      console.error(err);
     }
     ev.target.value = '';
   };
