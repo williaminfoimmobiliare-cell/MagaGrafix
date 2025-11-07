@@ -692,5 +692,12 @@ function closeScannerModal(){
   modal.classList.add('hidden');
   modal.setAttribute('aria-hidden','true');
 }
+// ====== REGISTRAZIONE SERVICE WORKER ======
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js?v=3')
+    .then(() => console.log('✅ Service Worker registrato'))
+    .catch(err => console.error('❌ SW error:', err));
+}
+
 
 
