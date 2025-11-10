@@ -6,14 +6,17 @@
   <title>MagaGrafix — Modalità Scanner</title>
   <link rel="stylesheet" href="style.css?v=5" />
   <style>
-    .scanner-wrap{max-width:800px;margin:20px auto}
+    /* Ritocchi dedicati alla pagina scanner */
+    .scanner-wrap{max-width:900px;margin:20px auto}
     .big-input{font-size:1.4rem;padding:14px 16px}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
-    .btn-big{font-size:1.1rem;padding:12px 18px}
+    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted);text-decoration:none}
+    .btn-big{font-size:1.05rem;padding:12px 18px}
     .grid-sc{display:grid;grid-template-columns:1fr 1fr;gap:12px}
     @media(max-width:768px){.grid-sc{grid-template-columns:1fr}}
     .lastbox{background:linear-gradient(180deg,var(--card),var(--card-2));border:1px solid var(--border);border-radius:12px;padding:12px}
     .ok{color:#10b981}.err{color:#ef4444}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .small{opacity:.9}
   </style>
 </head>
 <body>
@@ -21,11 +24,28 @@
     <header style="text-align:center">
       <h1>MagaGrafix — Scanner</h1>
       <div id="syncStatus" class="sync-badge">Sync: —</div>
-      <div style="margin-top:6px">
+      <div style="margin-top:8px">
         <a class="pill" href="./index.html">⟵ Torna al gestionale</a>
       </div>
     </header>
 
+    <!-- 🔹 Sezione: Scanner fotocamera (beta) -->
+    <div class="card">
+      <h3>Scanner fotocamera (beta)</h3>
+      <div class="row">
+        <button id="camStart">🎥 Avvia fotocamera</button>
+        <button id="camStop" class="ghost">■ Stop</button>
+        <span class="small" id="camStatus">—</span>
+      </div>
+      <div id="camBox" class="chartwrap" style="margin-top:10px; display:none;">
+        <video id="cam" playsinline autoplay style="width:100%;max-height:260px;border-radius:8px;"></video>
+      </div>
+      <div class="small" style="margin-top:6px">
+        Suggerimento: funziona su Chrome/Android. Su iPhone/Safari il supporto può mancare.
+      </div>
+    </div>
+
+    <!-- 🔹 Sezione: Scanner hardware (lettore barcode USB/Bluetooth = tastiera) -->
     <div class="card">
       <h3>Scanner hardware / inserimento rapido</h3>
       <div class="flexcol">
@@ -50,7 +70,7 @@
             </div>
           </div>
 
-          <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:10px;">
+          <div class="row" style="margin-top:8px">
             <input id="price" type="number" step="0.01" placeholder="Prezzo (solo OUT)" />
             <label class="switch" title="Conferma automatica alla scansione">
               <input id="autoConfirm" type="checkbox"><span>Auto-conferma</span>
@@ -65,24 +85,27 @@
       </div>
     </div>
 
+    <!-- 🔹 Ultimo risultato -->
     <div class="card lastbox">
       <h3>Ultimo risultato</h3>
       <div id="lastMsg" class="small">—</div>
     </div>
 
+    <!-- 🔹 Associazione barcode ↔ SKU -->
     <div class="card">
       <h3>Associa barcode a SKU (se non trovato)</h3>
-      <div class="row" style="flex-wrap:wrap;gap:10px;">
+      <div class="row">
         <input id="unknownBarcode" placeholder="Barcode letto (solo lettura)" readonly />
         <input id="assignSku" placeholder="SKU esistente o nuovo" />
         <button id="assignBtn">🔗 Associa</button>
       </div>
-      <div class="small">Suggerimento: se lo SKU esiste già, collegherà il barcode all’articolo. Se non esiste, crea un nuovo articolo con stock 0.</div>
+      <div class="small">Se lo SKU esiste già, collegherà il barcode all’articolo. Se non esiste, crea un nuovo articolo con stock 0.</div>
     </div>
 
     <footer class="small" style="text-align:center">© 2025 MagaGrafix — Modalità Scanner veloce</footer>
   </div>
 
+  <!-- JS della pagina scanner -->
   <script src="scan.js?v=3"></script>
 </body>
 </html>
