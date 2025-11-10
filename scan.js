@@ -1,4 +1,4 @@
-/* ===== MagaGrafix — scan.js (modalità scanner veloce) ===== */
+/* ===== MagaGrafix — scan.js (v3) ===== */
 
 /* 🔧 COPIA QUI GLI STESSI VALORI DELLA TUA APP */
 const LS_KEY = 'magagrafix_lite_v1';
@@ -7,12 +7,22 @@ const WRITE_KEY = ''; // se in Code.gs l'hai lasciata vuota, resta vuota
 
 /* --- Stato locale --- */
 let store = { version:1, lastWriteTs:Date.now(), items:[], transactions:[], snapshots:[], logoDataUrl:'', companyName:'' };
-let currentType = 'OUT'; // default: vendita
+let currentType = 'OUT'; // default
 
 /* --- Utils --- */
+const $ = (sel, req=false) => {
+  const el = document.querySelector(sel);
+  if (!el && req) console.error('Elemento mancante:', sel);
+  return el;
+};
+const on = (sel, event, handler) => {
+  const el = $(sel);
+  if (el) el.addEventListener(event, handler);
+  else console.warn('Listener non applicato (manca):', sel);
+};
 const fmt = n => Number(n||0).toLocaleString('it-IT',{minimumFractionDigits:2, maximumFractionDigits:2});
 const beep = (ok=true)=>{
-  if (!document.getElementById('soundToggle').checked) return;
+  const st = $('#soundToggle'); if (!st || !st.checked) return;
   const ctx = new (window.AudioContext||window.webkitAudioContext)();
   const o = ctx.createOscillator(), g = ctx.createGain();
   o.type='sine'; o.frequency.value = ok? 880 : 220;
@@ -21,7 +31,7 @@ const beep = (ok=true)=>{
   setTimeout(()=>{o.stop();ctx.close();}, ok?120:250);
 };
 const setSync = (txt,kind='info')=>{
-  const el = document.getElementById('syncStatus');
+  const el = $('#syncStatus'); if (!el) return;
   el.textContent = `Sync: ${txt}`;
   el.style.color = kind==='ok' ? '#10b981' : kind==='err' ? '#ef4444' : '#94a3b8';
 };
@@ -102,22 +112,19 @@ async function loadFromDrive(){
 }
 
 /* --- Logica scanner --- */
-const $ = sel => document.querySelector(sel);
 function setLast(html, ok){
-  $('#lastMsg').innerHTML = html;
-  $('#lastMsg').className = `small ${ok?'ok':'err'}`;
+  const box = $('#lastMsg'); if(!box) return;
+  box.innerHTML = html;
+  box.className = `small ${ok?'ok':'err'}`;
 }
 function findByBarcode(code){
   const c = String(code||'').trim();
   if (!c) return null;
-  // match su field barcode o (fallback) su SKU
   return store.items.find(i => (i.barcode && i.barcode===c) || i.sku===c) || null;
 }
 function ensureBarcodeField(){
-  // aggiunge barcode: '' agli item che non ce l'hanno (compatibilità vecchi dati)
   store.items.forEach(i => { if (typeof i.barcode === 'undefined') i.barcode = ''; });
 }
-
 function addTx(sku, type, qty, price){
   const now = Date.now();
   store.transactions.push({
@@ -126,38 +133,37 @@ function addTx(sku, type, qty, price){
   });
   saveStore();
 }
-
 function handleScan(code){
-  const qty = Math.max(1, Number($('#qty').value||1));
-  const price = Number($('#price').value||0);
+  const qtyEl = $('#qty', true); const priceEl = $('#price', true);
+  const qty = Math.max(1, Number(qtyEl?.value||1));
+  const price = Number(priceEl?.value||0);
   const it = findByBarcode(code);
 
   if (!it){
     setLast(`❓ Barcode <b>${code}</b> non trovato. Associalo a uno SKU qui sotto.`, false);
-    $('#unknownBarcode').value = code;
+    const ub = $('#unknownBarcode'); if (ub) ub.value = code;
     beep(false);
     return;
   }
 
   addTx(it.sku, currentType, qty, price);
   setLast(`✅ ${currentType} — ${it.sku} <b>${it.name||''}</b> × <b>${qty}</b> ${currentType==='OUT' && price? `(€${fmt(price)})` : ''}`, true);
-  if ($('#autoConfirm').checked){
-    $('#scanInput').value = '';
-  }
+  const ac = $('#autoConfirm');
+  const si = $('#scanInput');
+  if (ac && ac.checked && si) si.value = '';
   beep(true);
 }
 
 /* --- Associazione barcode↔SKU --- */
 function assignBarcode(){
-  const code = $('#unknownBarcode').value.trim();
-  const sku = $('#assignSku').value.trim();
+  const code = $('#unknownBarcode')?.value.trim();
+  const sku  = $('#assignSku')?.value.trim();
   if (!code || !sku){ setLast('Compila barcode e SKU per associare.', false); beep(false); return; }
 
   let it = store.items.find(i=>i.sku===sku);
   const now = Date.now();
 
   if (!it){
-    // crea articolo minimo se non esiste
     it = { sku, name: sku, position:'', stockInit:0, costPrice:0, sellPrice:0, updatedAt: now, barcode: code };
     store.items.push(it);
   } else {
@@ -166,8 +172,8 @@ function assignBarcode(){
 
   saveStore();
   setLast(`🔗 Associato barcode <b>${code}</b> a SKU <b>${sku}</b>. Ora puoi scansionare direttamente.`, true);
-  $('#assignSku').value = '';
-  $('#scanInput').focus();
+  const as = $('#assignSku'); if (as) as.value = '';
+  const si = $('#scanInput'); if (si) si.focus();
 }
 
 /* --- UI --- */
@@ -176,42 +182,37 @@ function bindUI(){
   loadStore(); ensureBarcodeField(); loadFromDrive();
 
   // focus permanente
-  const input = $('#scanInput');
-  input.addEventListener('blur', ()=> setTimeout(()=> input.focus(), 50) );
-
-  // intercetta invio dal lettore
-  input.addEventListener('keydown', (e)=>{
-    if (e.key === 'Enter'){
-      const code = input.value.trim();
-      if (code){ handleScan(code); }
-      if (!$('#autoConfirm').checked) input.select();
-      else input.value = '';
-    }
-    // scorciatoie
-    if (e.key === '1') currentType='IN';
-    if (e.key === '2') currentType='OUT';
-    if (e.key === '3') currentType='ROTTURA';
-    if (e.key === '+'){ e.preventDefault(); $('#qty').value = Math.max(1, Number($('#qty').value||1)+1); }
-    if (e.key === '-'){ e.preventDefault(); $('#qty').value = Math.max(1, Number($('#qty').value||1)-1); }
-  });
+  const input = $('#scanInput', true);
+  if (input){
+    input.addEventListener('blur', ()=> setTimeout(()=> input.focus(), 50) );
+    input.addEventListener('keydown', (e)=>{
+      if (e.key === 'Enter'){
+        const code = input.value.trim();
+        if (code){ handleScan(code); }
+        const ac = $('#autoConfirm');
+        if (!ac || !ac.checked) input.select(); else input.value = '';
+      }
+      if (e.key === '1') currentType='IN';
+      if (e.key === '2') currentType='OUT';
+      if (e.key === '3') currentType='ROTTURA';
+      if (e.key === '+'){ e.preventDefault(); const q=$('#qty'); if(q) q.value = Math.max(1, Number(q.value||1)+1); }
+      if (e.key === '-'){ e.preventDefault(); const q=$('#qty'); if(q) q.value = Math.max(1, Number(q.value||1)-1); }
+    });
+  }
 
   // bottoni tipo
-  document.querySelectorAll('[data-type]').forEach(b=>{
-    b.addEventListener('click', ()=>{
-      currentType = b.getAttribute('data-type');
-      setLast(`Tipo selezionato: <b>${currentType}</b>`, true);
-      $('#scanInput').focus();
-    });
-  });
+  on('#btnTypeIN','click', ()=>{ currentType='IN'; setLast(`Tipo selezionato: <b>${currentType}</b>`, true); input?.focus(); });
+  on('#btnTypeOUT','click', ()=>{ currentType='OUT'; setLast(`Tipo selezionato: <b>${currentType}</b>`, true); input?.focus(); });
+  on('#btnTypeROTTURA','click', ()=>{ currentType='ROTTURA'; setLast(`Tipo selezionato: <b>${currentType}</b>`, true); input?.focus(); });
 
   // qty e comandi
-  $('#qtyPlus').onclick = ()=> $('#qty').value = Math.max(1, Number($('#qty').value||1)+1);
-  $('#qtyMinus').onclick = ()=> $('#qty').value = Math.max(1, Number($('#qty').value||1)-1);
-  $('#confirmBtn').onclick = ()=>{ const code = $('#scanInput').value.trim(); if(code) handleScan(code); };
-  $('#syncBtn').onclick = async()=>{ await syncToDrive(); await new Promise(r=>setTimeout(r,600)); await loadFromDrive(); setLast('🔄 Sync completato', true); };
+  on('#qtyPlus','click', ()=>{ const q=$('#qty'); if(q) q.value = Math.max(1, Number(q.value||1)+1); });
+  on('#qtyMinus','click', ()=>{ const q=$('#qty'); if(q) q.value = Math.max(1, Number(q.value||1)-1); });
+  on('#confirmBtn','click', ()=>{ const si=$('#scanInput'); if(si && si.value.trim()) handleScan(si.value.trim()); });
+  on('#syncBtn','click', async()=>{ await syncToDrive(); await new Promise(r=>setTimeout(r,600)); await loadFromDrive(); setLast('🔄 Sync completato', true); });
 
   // associazione
-  $('#assignBtn').onclick = assignBarcode;
+  on('#assignBtn','click', assignBarcode);
 }
 
 window.addEventListener('load', bindUI);
