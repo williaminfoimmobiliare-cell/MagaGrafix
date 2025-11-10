@@ -25,24 +25,33 @@
     </header>
 
     <!-- Menu responsive -->
-    <nav class="top-actions">
-      <button id="menuToggle" class="menu-btn">☰ Menu</button>
-      <div id="menuPanel" class="menu-panel">
-        <a href="./scan.html" class="ghost" style="text-decoration:none">
-          <button>📷 Scanner (barcode)</button>
-        </a>
+<nav class="top-actions">
+  <button id="menuToggle" class="menu-btn">☰ Menu</button>
+  <div id="menuPanel" class="menu-panel">
 
-        <button id="exportJsonBtn">Esporta JSON</button>
-        <button id="exportCsvBtn">Esporta CSV</button>
-        <button id="importJsonBtn">Importa JSON</button>
-        <input id="jsonFileInput" type="file" accept=".json" style="display:none" />
+    <!-- 🔹 Scanner barcode -->
+    <a href="./scan.html" class="ghost" style="text-decoration:none">
+      <button>📷 Scanner (barcode)</button>
+    </a>
 
-        <button id="syncNowBtn">Sincronizza ora</button>
-        <label class="switch"><input id="autoSyncToggle" type="checkbox"><span>AutoSync 30s</span></label>
+    <!-- 🔹 Esporta / importa dati -->
+    <button id="exportJsonBtn">Esporta JSON</button>
+    <button id="exportCsvBtn">Esporta CSV</button>
+    <button id="importJsonBtn">Importa JSON</button>
+    <input id="jsonFileInput" type="file" accept=".json" style="display:none" />
 
-        <button id="exportPdfBtn">Esporta PDF</button>
-      </div>
-    </nav>
+    <!-- 🔹 Sincronizzazione -->
+    <button id="syncNowBtn">Sincronizza ora</button>
+    <label class="switch">
+      <input id="autoSyncToggle" type="checkbox">
+      <span>AutoSync 30s</span>
+    </label>
+
+    <!-- 🔹 Esporta PDF -->
+    <button id="exportPdfBtn">Esporta PDF</button>
+  </div>
+</nav>
+
 
     <!-- Alert scorte -->
     <div id="alertLow" class="alertbar hidden"></div>
@@ -164,3 +173,4 @@
   <script src="script.js?v=5"></script>
 </body>
 </html>
+
