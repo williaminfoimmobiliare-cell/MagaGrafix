@@ -1,5 +1,5 @@
 // ===== MagaGrafix — Service Worker (v5) =====
-const CACHE = 'magagrafix-v5';
+const CACHE = 'magagrafix-v6';
 
 const ASSETS = [
   './',
