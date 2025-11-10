@@ -7,7 +7,7 @@
   <title>MagaGrafix — Gestionale Magazzino</title>
 
   <!-- PWA -->
-  <link rel="manifest" href="manifest.json?v=3" />
+  <link rel="manifest" href="manifest.json?v=4" />
   <link rel="icon" href="icons/icon-192.png" sizes="192x192" />
 
   <!-- Librerie -->
@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <!-- Stili -->
-  <link rel="stylesheet" href="style.css?v=3" />
+  <link rel="stylesheet" href="style.css?v=4" />
 </head>
 <body>
   <div class="wrap">
@@ -28,6 +28,11 @@
     <nav class="top-actions">
       <button id="menuToggle" class="menu-btn">☰ Menu</button>
       <div id="menuPanel" class="menu-panel">
+        <!-- 🔹 NUOVO: pulsante per aprire la pagina scanner -->
+        <a href="./scan.html" class="ghost" style="text-decoration:none">
+          <button>📷 Scanner (barcode)</button>
+        </a>
+
         <button id="exportJsonBtn">Esporta JSON</button>
         <button id="exportCsvBtn">Esporta CSV</button>
         <button id="importJsonBtn">Importa JSON</button>
@@ -164,6 +169,6 @@
   </div>
 
   <!-- Script applicazione (con versione per aggiornamenti) -->
-  <script src="script.js?v=3"></script>
+  <script src="script.js?v=4"></script>
 </body>
 </html>
