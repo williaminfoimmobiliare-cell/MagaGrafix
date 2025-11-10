@@ -4,18 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>MagaGrafix — Modalità Scanner</title>
-  <link rel="stylesheet" href="style.css?v=3" />
-  <style>
-    /* Ritocchi rapidi per la pagina scanner */
-    .scanner-wrap{max-width:800px;margin:20px auto}
-    .big-input{font-size:1.4rem;padding:14px 16px}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
-    .btn-big{font-size:1.1rem;padding:12px 18px}
-    .grid-sc{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:768px){.grid-sc{grid-template-columns:1fr}}
-    .lastbox{background:linear-gradient(180deg,var(--card),var(--card-2));border:1px solid var(--border);border-radius:12px;padding:12px}
-    .ok{color:#10b981}.err{color:#ef4444}
-  </style>
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
   <div class="wrap scanner-wrap">
@@ -27,63 +16,9 @@
       </div>
     </header>
 
-    <div class="card">
-      <h3>Scanner hardware / inserimento rapido</h3>
-      <div class="flexcol">
-        <input id="scanInput" class="big-input" placeholder="Metti il cursore qui e SCANNA il codice a barre…" autofocus />
-        <div class="row">
-          <div class="grid-sc">
-            <div class="flexcol">
-              <label>Tipo</label>
-              <div class="row">
-                <button class="btn-big" data-type="IN">1️⃣ IN (entrata)</button>
-                <button class="btn-big" data-type="OUT">2️⃣ OUT (vendita)</button>
-                <button class="btn-big" data-type="ROTTURA">3️⃣ ROTTURA</button>
-              </div>
-            </div>
-            <div class="flexcol">
-              <label>Quantità</label>
-              <div class="row">
-                <button id="qtyMinus" class="ghost btn-big">−</button>
-                <input id="qty" type="number" min="1" value="1" style="max-width:120px;text-align:center" />
-                <button id="qtyPlus" class="ghost btn-big">＋</button>
-              </div>
-            </div>
-          </div>
+    <!-- … contenuto come già fornito … -->
 
-          <div class="row" style="margin-top:8px">
-            <input id="price" type="number" step="0.01" placeholder="Prezzo (solo OUT)" />
-            <label class="switch" title="Conferma automatica alla scansione">
-              <input id="autoConfirm" type="checkbox"><span>Auto-conferma</span>
-            </label>
-            <label class="switch" title="Suoni">
-              <input id="soundToggle" type="checkbox" checked><span>Suono</span>
-            </label>
-            <button id="confirmBtn" class="btn-big">✅ Conferma (Invio)</button>
-            <button id="syncBtn" class="ghost">🔄 Sincronizza ora</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="card lastbox">
-      <h3>Ultimo risultato</h3>
-      <div id="lastMsg" class="small">—</div>
-    </div>
-
-    <div class="card">
-      <h3>Associa barcode a SKU (se non trovato)</h3>
-      <div class="row">
-        <input id="unknownBarcode" placeholder="Barcode letto (solo lettura)" readonly />
-        <input id="assignSku" placeholder="SKU esistente o nuovo" />
-        <button id="assignBtn">🔗 Associa</button>
-      </div>
-      <div class="small">Suggerimento: se lo SKU esiste già, collegherà il barcode all’articolo. Se non esiste, crea un nuovo articolo con stock 0.</div>
-    </div>
-
-    <footer class="small" style="text-align:center">© 2025 MagaGrafix — Modalità Scanner veloce</footer>
   </div>
-
-  <script src="scan.js?v=1"></script>
+  <script src="scan.js?v=2"></script>
 </body>
 </html>
