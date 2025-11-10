@@ -7,7 +7,7 @@
   <title>MagaGrafix — Gestionale Magazzino</title>
 
   <!-- PWA -->
-  <link rel="manifest" href="manifest.json?v=4" />
+  <link rel="manifest" href="manifest.json?v=5" />
   <link rel="icon" href="icons/icon-192.png" sizes="192x192" />
 
   <!-- Librerie -->
@@ -15,7 +15,7 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <!-- Stili -->
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=5" />
 </head>
 <body>
   <div class="wrap">
@@ -28,7 +28,6 @@
     <nav class="top-actions">
       <button id="menuToggle" class="menu-btn">☰ Menu</button>
       <div id="menuPanel" class="menu-panel">
-        <!-- 🔹 NUOVO: pulsante per aprire la pagina scanner -->
         <a href="./scan.html" class="ghost" style="text-decoration:none">
           <button>📷 Scanner (barcode)</button>
         </a>
@@ -51,7 +50,6 @@
     <div class="grid">
       <!-- Colonna sinistra -->
       <div>
-        <!-- Articoli -->
         <div class="card">
           <h3>1️⃣ Aggiungi o Modifica Articolo</h3>
           <div class="flexcol">
@@ -72,7 +70,6 @@
           </div>
         </div>
 
-        <!-- Transazioni -->
         <div class="card">
           <h3>2️⃣ Registra Transazione</h3>
           <div class="flexcol">
@@ -93,7 +90,6 @@
           </div>
         </div>
 
-        <!-- Inventario -->
         <div class="card">
           <div class="flex-between">
             <h3>Inventario</h3>
@@ -115,7 +111,6 @@
 
       <!-- Colonna destra -->
       <div>
-        <!-- Grafico -->
         <div class="card">
           <div class="flex-between">
             <h3>Andamento Magazzino</h3>
@@ -130,13 +125,11 @@
           <div class="chartwrap"><canvas id="trendChart"></canvas></div>
         </div>
 
-        <!-- Torta -->
         <div class="card">
           <h3>Panoramica Entrate / Uscite / Guadagno</h3>
           <div class="chartwrap"><canvas id="pieChart"></canvas></div>
         </div>
 
-        <!-- Storico -->
         <div class="card">
           <h3>Storico Transazioni</h3>
           <div class="scroll-area" style="max-height:250px;">
@@ -151,7 +144,6 @@
           </div>
         </div>
 
-        <!-- Logo & Azienda -->
         <div class="card">
           <h3>Logo & Azienda</h3>
           <div class="flexcol">
@@ -169,6 +161,6 @@
   </div>
 
   <!-- Script applicazione (con versione per aggiornamenti) -->
-  <script src="script.js?v=4"></script>
+  <script src="script.js?v=5"></script>
 </body>
 </html>
