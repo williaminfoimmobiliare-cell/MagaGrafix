@@ -698,6 +698,36 @@ if ('serviceWorker' in navigator) {
     .then(() => console.log('✅ Service Worker registrato'))
     .catch(err => console.error('❌ SW error:', err));
 }
+/* ================================
+   REGISTRAZIONE SERVICE WORKER
+   ================================ */
+
+// Controlla che il browser supporti i service worker
+if ('serviceWorker' in navigator) {
+  // Registra il file con la versione attuale (v=5)
+  navigator.serviceWorker
+    .register('./service-worker.js?v=5')
+    .then((registration) => {
+      console.log('✅ Service Worker registrato con successo:', registration.scope);
+
+      // Avvisa se è disponibile una nuova versione in cache
+      registration.onupdatefound = () => {
+        const newWorker = registration.installing;
+        newWorker.onstatechange = () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            console.log('🆕 Nuova versione del service worker disponibile.');
+            alert('🆕 È disponibile un aggiornamento di MagaGrafix! Ricarica la pagina.');
+          }
+        };
+      };
+    })
+    .catch((error) => {
+      console.error('❌ Errore nella registrazione del Service Worker:', error);
+    });
+} else {
+  console.warn('⚠️ Service Worker non supportato su questo browser.');
+}
+
 
 
 
